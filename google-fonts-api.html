@@ -1,0 +1,66 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<!--
+  Web component wrapper for Google Fonts API.
+
+  Allows the developer to consume the fonts API as a web component.
+
+  @demo demo/index.html
+-->
+<dom-module id="google-fonts-api">
+  <template>
+    <iron-ajax id="ajax" auto handle-as="json" on-response="_onFonts" on-error="_onError"></iron-ajax>
+  </template>
+  <script>
+    Polymer({
+      is: 'google-fonts-api',
+      properties: {
+        /**
+         * Your Google API key, visit Google developer console to obtain one.
+         */
+        key: {
+          type: String
+        },
+        /**
+         * The sorting to use for the list of fonts.
+         *
+         * The sorting should be performed server side (i.e. by Google) as some
+         * of the metrics are not exposed in the API.
+         *
+         * Available sorting options are:
+         * - `alpha`
+         * - `date`
+         * - `popularity`
+         * - `trending`
+         */
+        sortBy: {
+          type: String,
+          value: 'alpha'
+        },
+        /**
+         * Once loaded font listing will be exposed via this property.
+         */
+        fonts: {
+          type: Array,
+          notify: true
+        }
+      },
+      observers: ['_onSetupChange(key, sortBy)'],
+      _onSetupChange: function() {
+        if (this.key) {
+          this.$.ajax.url = 'https://www.googleapis.com/webfonts/v1/webfonts?sort=' +
+              this.sortBy + '&key=' + this.key;
+        } else {
+          console.error('No GAPI key assigned, aborting');
+        }
+      },
+      _onFonts: function(e) {
+        this.fonts = e.detail.response.items;
+      },
+      _onError: function(e) {
+        console.error(e.detail.error);
+      }
+    });
+  </script>
+</dom-module>
